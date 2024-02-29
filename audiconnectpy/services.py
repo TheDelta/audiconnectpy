@@ -37,6 +37,7 @@ class AudiService:
     vin: str
     url: str
     url_setter: str
+    url_new24: str
     country: str
     api_level: dict[str, int]
     spin: str | None
@@ -56,18 +57,25 @@ class AudiService:
 
     async def async_get_vehicle(self) -> VehicleDataResponse:
         """Get store data."""
+        headers = await self.auth.async_get_headers(token_type="idk")
         data = await self.auth.get(
-            f"{self.url}/bs/vsr/v1/{BRAND}/{self.country}/vehicles/{self.vin}/status"
+            f"{self.url_new24}/vehicle/v1/vehicles/{self.vin}/selectivestatus?jobs=access,charging,fuelStatus,climatisation,measurements",
+            headers=headers,
         )
         data = data if data else ExtendedDict()
         return VehicleDataResponse(data, self.spin is not None)
 
     async def async_get_stored_position(self) -> PositionDataResponse:
         """Get position data."""
+        headers = await self.auth.async_get_headers(token_type="idk")
         data = await self.auth.get(
-            f"{self.url}/bs/cf/v1/{BRAND}/{self.country}/vehicles/{self.vin}/position"
+            f"{self.url_new24}/vehicle/v1/vehicles/{self.vin}/parkingposition",
+            headers=headers,
         )
         data = data if data else ExtendedDict()
+        if data.get('data') is not None:
+            data = ExtendedDict(data.get('data'))
+
         return PositionDataResponse(data)
 
     async def async_get_destinations(self) -> DestinationDataResponse:

@@ -70,6 +70,7 @@ class AudiConnect:
                             data=ExtendedDict(response),
                             url=url,
                             url_setter=url_setter,
+                            url_new24="https://emea.bff.cariad.digital",
                             country=self.country,
                             spin=self._spin,
                         )

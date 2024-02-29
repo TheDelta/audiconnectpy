@@ -127,6 +127,97 @@ class VehicleDataResponse:
         """Attributes properties."""
         return self._vehicle_data
 
+    def _try_new_format(self) -> ExtendedDict:
+        attrs = ExtendedDict({"last_access": dt.now()})
+
+        accessStatus = self.data.getr("access.accessStatus.value")
+        if accessStatus is None:
+            return ExtendedDict(attrs)
+
+        self.measure_time = accessStatus.get("carCapturedTimestamp")
+        attrs.update({"last_access": self.measure_time})
+        
+        status_list = {
+            'access': accessStatus,
+            'fuel': self.data.getr("fuelStatus.rangeStatus.value"),
+            'range': self.data.getr("measurements.rangeStatus.value"),
+            'odometer': self.data.getr("measurements.odometerStatus.value"),
+            'fuelLevel': self.data.getr("measurements.fuelLevelStatus.value")
+        }
+        for type, data in status_list.items():
+            kvp = {}
+            for k, v in data.items():
+                if k in ['carCapturedTimestamp']:
+                    continue
+
+                if type == 'access' and k in ['doors', 'windows']:
+                    entities = []
+                    if not isinstance(v, list):
+                        _LOGGER.error("Access key %s is not a list!", k)
+                        kvp.update(k, entities)
+                        continue
+
+                    is_any_open = False
+                    is_any_unlocked = False
+
+                    e: dict
+                    for e in v:
+                        entity = { 'name': e.get('name') }
+                        entity_status: list[str] = e.get('status')
+
+
+                        # TODO search for better status, I assume there is status "unlocked" and "open" but must verify first!
+
+                        is_supported = 'unsupported' not in entity_status
+                        is_closed = 'closed' in entity_status or not is_supported
+                        is_any_open = is_any_open or not is_closed
+                        if k == 'doors':
+                            is_locked =  'locked' in entity_status or entity['name'] == "bonnet" and is_closed
+                            is_any_unlocked = is_any_unlocked or not is_locked
+                            entity.update({
+                                'closed': is_closed,
+                                'locked': is_locked
+                            })
+                        elif k == 'windows':
+                            entity.update({
+                                'closed': is_closed,
+                                'supported': is_supported
+                            })
+
+                        entities.append(entity)
+                    kvp.update({ k: entities })
+
+                    # legacy support:
+                    if k == 'windows':
+                        attrs.update({"any_window_open": is_any_open})
+                    if k == 'doors':
+                        attrs.update({"any_door_unlocked": is_any_unlocked})
+                        attrs.update({"any_door_open": is_any_open})
+                    continue
+                        
+                kvp.update({ k: v })
+            attrs.update({ type: kvp })
+
+
+        # handle doors & windows
+
+        # self.send_time = raw_field.get("tsCarSent")
+        # self.send_time_utc = raw_field.get("tsCarSentUtc")
+        # self.measure_mileage = raw_field.get("milCarCaptured")
+        # self.send_mileage = raw_field.get("milCarSent")
+
+        #     metadatas.update({"doors_trunk_status": "Open"})
+        # elif any_door_unlocked and trunk_unlocked:
+        #     metadatas.update({"doors_trunk_status": "Closed"})
+        # else:
+        #     metadatas.update({"doors_trunk_status": "Locked"})
+
+        # metadatas.update({"any_tyre_problem": any_tyre_pressure})
+
+
+        
+        return ExtendedDict(attrs)
+
     def _get_attributes(self) -> ExtendedDict:
         attrs = ExtendedDict({"last_access": dt.now()})
 
@@ -135,7 +226,7 @@ class VehicleDataResponse:
             "StoredVehicleDataResponse.vehicleData.data", default
         )
         if vehicle_data is None:
-            return ExtendedDict(attrs)
+            return self._try_new_format()
 
         for raw_data in vehicle_data:
             for raw_field in raw_data.get("field", {}):
@@ -431,22 +522,19 @@ class PositionDataResponse:
     @property
     def is_supported(self) -> bool:
         """Supported status."""
-        return self.data.getr("findCarResponse.Position") is not None
+        return self.data.getr("lon") is not None
 
     @property
     def attributes(self) -> ExtendedDict:
         """Attributes properties."""
-        coordinate = self.data.getr("findCarResponse.Position.carCoordinate", {})
-        timestamp = self.data.getr("findCarResponse.Position.timestampCarSentUTC")
+        timestamp = self.data.getr("carCapturedTimestamp")
         attrs = {
             "position": ExtendedDict(
                 {
-                    "latitude": coordinate.get("latitude", 0) / 1000000,
-                    "longitude": coordinate.get("longitude", 0) / 1000000,
+                    "latitude": self.data.getr("lon"),
+                    "longitude": self.data.getr("lat"),
                     "timestamp": timestamp,
-                    "parktime": self.data.getr(
-                        "findCarResponse.parkingTimeUTC", timestamp
-                    ),
+                    "parktime": timestamp # was findCarResponse.parkingTimeUTC
                 }
             )
         }

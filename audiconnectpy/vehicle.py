@@ -22,6 +22,7 @@ class Vehicle(AudiService, AudiActions):
         data: ExtendedDict,
         url: str,
         url_setter: str,
+        url_new24: str,
         country: str = "DE",
         spin: str | None = None,
     ) -> None:
@@ -53,7 +54,7 @@ class Vehicle(AudiService, AudiActions):
         self.support_climater_timer: bool | None = None
         self.support_vehicle: bool | None = None
 
-        super().__init__(auth, self.vin, url, url_setter, country, self.api_level, spin)
+        super().__init__(auth, self.vin, url, url_setter, url_new24, country, self.api_level, spin)
 
     async def async_fetch_data(self) -> bool:
         """Update."""

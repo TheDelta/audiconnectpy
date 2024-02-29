@@ -1,3 +1,38 @@
+# Fork of audiconnectpy
+
+This is a fork to test and fix the API changes. The old api was shutdown ~ February 2024.
+
+## Usage (example.py)
+
+1. Clone / download this repository
+2. Create a `.env` file next to the `example.py` file
+3. The contents of the file should have at least `EMAIL` and `PASSWORD`.
+   - You can also change `COUNTRY` and `SPIN`,
+    ```
+    EMAIL=<your-email>
+    PASSWORD=<your-pw>
+    COUNTRY=DE
+    SPIN=1234
+    ```
+4. Ensure that you have the dependencies installed (`pip install async-timeout asyncio bs4 python-dotenv`)
+5. Execute the script with `python example.py` and you should see some DEBUG stuff and at the end your Audi data 😁
+
+The output data key/values slightly changed and is not fully functional with legacy *yet*.
+
+## changes
+
+- Fix Vehicle Information & Position data
+  - data format changed, so not compatible with legacy yet (homeassistant integration, etc.)
+- Added python-env for safer credentials storage 😅
+- Added some colors to the example 🥳
+
+> Was tested on my 2023 Audi RS 3 Sportback TFSI quattro S tronic 🚀
+
+---
+
+
+(below is the original readme)
+
 # audiconnectpy
 
 [![GitHub sourcecode](https://img.shields.io/badge/Source-GitHub-green)](https://github.com/cyr-ius/audiconnectpy/)
