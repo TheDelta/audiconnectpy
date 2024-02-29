@@ -1,7 +1,6 @@
 """
     Example script
     Usage
-        Install dependencies with `pip install async-timeout asyncio bs4 python-dotenv`
         Create a .env file in the same folder as this example.py file (or update the vars blow)
         Content of .env should be
         ```
@@ -113,5 +112,4 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
+    asyncio.run(main())

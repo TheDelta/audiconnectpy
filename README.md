@@ -14,7 +14,7 @@ This is a fork to test and fix the API changes. The old api was shutdown ~ Febru
     COUNTRY=DE
     SPIN=1234
     ```
-4. Ensure that you have the dependencies installed (`pip install async-timeout asyncio bs4 python-dotenv`)
+4. Ensure that you have the dependencies installed (`pip install -r requirements.txt`)
 5. Execute the script with `python example.py` and you should see some DEBUG stuff and at the end your Audi data 😁
 
 The output data key/values slightly changed and is not fully functional with legacy *yet*.
@@ -25,6 +25,7 @@ The output data key/values slightly changed and is not fully functional with leg
   - data format changed, so not compatible with legacy yet (homeassistant integration, etc.)
 - Added python-env for safer credentials storage 😅
 - Added some colors to the example 🥳
+- Added json print example
 
 > Was tested on my 2023 Audi RS 3 Sportback TFSI quattro S tronic 🚀
 
